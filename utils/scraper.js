@@ -5,33 +5,18 @@ const scrapeMedium = async () => {
   const page = await browser.newPage()
   await page.goto('https://medium.com/search?q=headless%20browser')
 
-  const scrapedData = await page.evaluate(() => {
-    const mediumData = []
-    const elementsArray = Array.from(
-      document.querySelectorAll('div.postArticle-content a')
+  const scrapedData = await page.evaluate(() =>
+    Array.from(
+      document.querySelectorAll(
+        'div.postArticle-content a:first-child[data-action-value]'
+      )
     )
-
-    const links = elementsArray
-      .filter(link => link.getAttribute('data-action-value'))
-      .map(link => `${link.getAttribute('data-action-value')}`)
-
-    const titles = Array.from(document.querySelectorAll('.graf--title')).map(
-      el => el.textContent
-    )
-
-    elementsArray.forEach(el => {
-      const title = titles[elementsArray.indexOf(el)]
-      const link = links[elementsArray.indexOf(el)]
-      if (title && link) {
-        mediumData.push({
-          title,
-          link
-        })
-      }
-    })
-
-    return mediumData
-  })
+      .filter(node => node.querySelector('.graf--title'))
+      .map(link => ({
+        title: link.querySelector('.graf--title').textContent,
+        link: link.getAttribute('data-action-value')
+      }))
+  )
 
   await browser.close()
   return scrapedData
@@ -44,23 +29,15 @@ const scrapeYoutube = async () => {
     'https://www.youtube.com/results?search_query=headless+browser'
   )
 
-  const scrapedData = await page.evaluate(() => {
-    const combinedData = []
-    const elementsArray = Array.from(
-      document.querySelectorAll('.ytd-video-renderer #video-title')
-    )
-    const links = elementsArray.map(link => `${link.getAttribute('href')}`)
-    const titles = elementsArray.map(title => `${title.getAttribute('title')}`)
+  const scrapedData = await page.evaluate(() =>
+    Array.from(document.querySelectorAll('.ytd-video-renderer #video-title'))
+      .map(link => ({
+        title: link.getAttribute('title'),
+        link: link.getAttribute('href')
+      }))
+      .slice(0, 10)
+  )
 
-    elementsArray.forEach(el =>
-      combinedData.push({
-        title: titles[elementsArray.indexOf(el)],
-        link: links[elementsArray.indexOf(el)]
-      })
-    )
-
-    return combinedData.splice(0, 9)
-  })
 
   await browser.close()
   return scrapedData
