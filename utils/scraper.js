@@ -7,14 +7,11 @@ const scrapeMedium = async () => {
 
   const scrapedData = await page.evaluate(() =>
     Array.from(
-      document.querySelectorAll(
-        'div.postArticle-content a:first-child[data-action-value]'
-      )
-    )
-      .filter(node => node.querySelector('.graf--title'))
-      .map(link => ({
-        title: link.querySelector('.graf--title').textContent,
-        link: link.getAttribute('data-action-value')
+      document.querySelectorAll('article a'))
+      .filter(el=>el.querySelector('h2'))
+      .map(link=>({
+        title: link.querySelector('h2').textContent,
+        link: link.href
       }))
   )
 
